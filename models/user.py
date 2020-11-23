@@ -4,9 +4,9 @@ from app import db
 class User(db.Model):
     """table with users"""
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, min_length=1, max_length=150, nullable=False)
-    first_name = db.Column(db.String(150), max_length=150)
-    last_name = db.Column(db.String(150), max_length=150)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    first_name = db.Column(db.String(150))
+    last_name = db.Column(db.String(150))
     is_active = db.Column(db.Boolean, nullable=False)
     last_login = db.Column(db.DateTime)
     is_superuser = db.Column(db.Boolean)
