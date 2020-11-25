@@ -12,4 +12,11 @@ def create_app(config):
 
     db.init_app(app)
     api.app = app
+    api.authorizations = {
+        'apiKey': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'X-API-KEY'
+        }
+    }
     return app

@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
 
 from models.user import User, db
+from app.auth import auth
 
 
 def body_schema(user):
@@ -31,6 +32,7 @@ class UsersController(Resource):
         args = parser.parse_args()
         return args['username'], args['first_name'], args['last_name'], args['is_active']
 
+    @auth.login_required
     def post(self):
         try:
             username, first_name, last_name, is_active = self.create_params()
@@ -45,6 +47,7 @@ class UsersController(Resource):
                        }
                    }, 422
 
+    @auth.login_required
     def get(self):
         query = User.query.order_by(User.id).all()
         data = schema(query)
@@ -61,6 +64,7 @@ class UsersIndexController(Resource):
         args = parser.parse_args()
         return args['username'], args['first_name'], args['last_name'], args['is_active']
 
+    @auth.login_required
     def put(self, id):
         try:
             username, first_name, last_name, is_active = self.update_params()
@@ -105,6 +109,7 @@ class UsersIndexController(Resource):
                        }
                    }, 422
 
+    @auth.login_required
     def get(self, id):
         try:
             user = User.query.filter_by(id=id).first()
@@ -116,6 +121,7 @@ class UsersIndexController(Resource):
                        }
                    }, 404
 
+    @auth.login_required
     def delete(self, id):
         try:
             user = User.query.filter(User.id == id).first()
