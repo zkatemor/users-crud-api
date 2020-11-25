@@ -104,3 +104,34 @@ class UsersIndexController(Resource):
                            "message": str(e)
                        }
                    }, 422
+
+    def get(self, id):
+        try:
+            user = User.query.filter_by(id=id).first()
+            return body_schema(user), 200
+        except Exception as e:
+            return {
+                       "error": {
+                           "message": 'User not found'
+                       }
+                   }, 404
+
+    def delete(self, id):
+        try:
+            user = User.query.filter(User.id == id).first()
+            if user is not None:
+                User.query.filter(User.id == id).delete()
+                db.session.commit()
+                return {"success": True}, 200
+            else:
+                return {
+                           "error": {
+                               "message": "User not found"
+                           }
+                       }, 404
+        except Exception as e:
+            return {
+                       "error": {
+                           "message": str(e)
+                       }
+                   }, 404
