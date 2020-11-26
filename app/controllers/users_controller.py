@@ -9,8 +9,7 @@ def body_schema(user):
                        'username': user.username,
                        'first_name': user.first_name,
                        'last_name': user.last_name,
-                       'is_active': user.is_active,
-                       'is_superuser': user.is_superuser}}
+                       'is_active': user.is_active}}
 
 
 def schema(users):
@@ -18,8 +17,7 @@ def schema(users):
                         'username': user.username,
                         'first_name': user.first_name,
                         'last_name': user.last_name,
-                        'is_active': user.is_active,
-                        'is_superuser': user.is_superuser} for user in users]}
+                        'is_active': user.is_active} for user in users]}
 
 
 class UsersController(Resource):
