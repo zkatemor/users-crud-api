@@ -1,11 +1,11 @@
 import hashlib
-import uuid
 from secrets import token_hex
 
 from flask_restful import Resource, reqparse
 
-from app.auth import auth
-from models.token import Token, db
+from app.auth.handlers import auth
+from models.token import Token
+from db.setup import db
 
 
 class AuthController(Resource):
@@ -18,11 +18,18 @@ class AuthController(Resource):
 
     @auth.login_required
     def get(self):
-        return {
-            "result": {
-                "message": "Hello, {}!".format(auth.current_user())
+        try:
+            return {
+                "result": {
+                    "message": "Hello, {}!".format(auth.current_user())
+                }
             }
-        }
+        except Exception as e:
+            return {
+                       "error": {
+                           "message": str(e)
+                       }
+                   }, 422
 
     @auth.login_required
     def post(self):

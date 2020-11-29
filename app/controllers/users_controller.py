@@ -1,7 +1,8 @@
 from flask_restful import Resource, reqparse
 
-from models.user import User, db
-from app.auth import auth
+from app.auth.handlers import auth
+from models.user import User
+from db.setup import db
 
 
 def body_schema(user):

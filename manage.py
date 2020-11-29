@@ -3,14 +3,12 @@ import os
 from dotenv import load_dotenv
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from flask_httpauth import HTTPTokenAuth
 
 from app import create_app, api
-import db
+from db.setup import db as database
 from app.controllers.auth_controller import AuthController
 from app.controllers.users_controller import UsersController, UsersIndexController
 
-database = db.get_db()
 
 load_dotenv()
 
