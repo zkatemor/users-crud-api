@@ -3,6 +3,7 @@ from flask_restful import Resource, reqparse
 from app.auth.handlers import auth
 from models.post import Post
 from db.setup import db
+from models.user import User
 
 
 def body_schema(post):
@@ -10,6 +11,14 @@ def body_schema(post):
                        'title': post.title,
                        'body': post.body,
                        'userId': post.userId}}
+
+
+def schema_users(users):
+    return {"result": [{'id': user.id,
+                        'username': user.username,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'is_active': user.is_active} for user in users]}
 
 
 def schema(posts):
@@ -133,3 +142,37 @@ class PostsIndexController(Resource):
                            "message": str(e)
                        }
                    }, 404
+
+
+class UserPost(Resource):
+    @auth.login_required
+    def get(self, userId):
+        """viewing posts of a specific user"""
+        if Post.query.filter(Post.userId == userId).count():
+            posts = Post.query.filter(Post.userId == userId)
+            js = schema(posts)
+            return {'message': 'Success', 'data': js}, 200
+        else:
+            return {'message': 'Posts not found', 'data': {}}, 404
+
+    @auth.login_required
+    def delete(self, userId):
+        """delete specific user posts"""
+        if Post.query.filter(Post.userId == userId).count():
+            Post.query.filter(Post.userId == userId).delete()
+            db.session.commit()
+            return '', 204
+        else:
+            return {'message': 'User posts not found', 'data': {}}, 404
+
+
+class Author(Resource):
+    @auth.login_required
+    def get(self, id):
+        """found author of the post by post id"""
+        user = User.query.join(User.posts, aliased=True) \
+            .filter_by(id=id)
+
+        js = schema_users(user)
+
+        return {'message': 'Success', 'data': js}, 200
