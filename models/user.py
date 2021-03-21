@@ -9,7 +9,9 @@ class User(db.Model):
     last_name = db.Column(db.String(150))
     is_active = db.Column(db.Boolean, nullable=False)
 
-    def __init__(self, username: str, first_name: str, last_name: str, is_active: bool):
+    def __init__(self,
+                 username: str, first_name: str,
+                 last_name: str, is_active: bool):
         self.username = username
         self.first_name = first_name
         self.last_name = last_name

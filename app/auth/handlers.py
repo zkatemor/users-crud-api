@@ -1,5 +1,4 @@
 from flask_httpauth import HTTPTokenAuth
-
 from models.token import Token
 
 auth = HTTPTokenAuth(scheme='Bearer')

@@ -29,21 +29,25 @@ class UsersController(Resource):
         parser.add_argument('last_name', type=str, required=False)
         parser.add_argument('is_active', type=bool, required=True)
         args = parser.parse_args()
-        return args['username'], args['first_name'], args['last_name'], args['is_active']
+        return \
+            args['username'], args['first_name'], \
+            args['last_name'], args['is_active']
 
     @auth.login_required
     def post(self):
         try:
             username, first_name, last_name, is_active = self.create_params()
-            user = User(username=username, first_name=first_name, last_name=last_name, is_active=is_active)
+            user = User(username=username,
+                        first_name=first_name,
+                        last_name=last_name,
+                        is_active=is_active)
             db.session.add(user)
             db.session.commit()
             return body_schema(user), 201
         except Exception as e:
-            return {
-                       "error": {
-                           "message": str(e)
-                       }
+            return {"error": {
+                "message": str(e)
+            }
                    }, 422
 
     @auth.login_required
@@ -61,7 +65,9 @@ class UsersIndexController(Resource):
         parser.add_argument('last_name', type=str, required=False)
         parser.add_argument('is_active', type=bool, required=False)
         args = parser.parse_args()
-        return args['username'], args['first_name'], args['last_name'], args['is_active']
+        return \
+            args['username'], args['first_name'], \
+            args['last_name'], args['is_active']
 
     @auth.login_required
     def put(self, id):
@@ -72,16 +78,20 @@ class UsersIndexController(Resource):
             if user is not None:
                 try:
                     if username:
-                        User.query.filter_by(id=id).update({'username': username})
+                        User.query.filter_by(id=id).update(
+                            {'username': username})
 
                     if first_name:
-                        User.query.filter_by(id=id).update({'first_name': first_name})
+                        User.query.filter_by(id=id).update(
+                            {'first_name': first_name})
 
                     if last_name:
-                        User.query.filter_by(id=id).update({'last_name': last_name})
+                        User.query.filter_by(id=id).update(
+                            {'last_name': last_name})
 
                     if is_active:
-                        User.query.filter_by(id=id).update({'is_active': is_active})
+                        User.query.filter_by(id=id).update(
+                            {'is_active': is_active})
 
                     db.session.commit()
                     user = User.query.filter(User.id == id).first()
@@ -130,9 +140,8 @@ class UsersIndexController(Resource):
                 return {"success": True}, 200
             else:
                 return {
-                           "error": {
-                               "message": "User not found"
-                           }
+                           "error": {"message": "User not found"
+                                     }
                        }, 404
         except Exception as e:
             return {

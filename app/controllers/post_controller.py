@@ -48,8 +48,8 @@ class PostssController(Resource):
         except Exception as e:
             return {
                        "error": {
-                           "message": str(e)
-                       }
+                               "message": str(e)
+                           }
                    }, 422
 
     @auth.login_required

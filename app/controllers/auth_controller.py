@@ -43,12 +43,10 @@ class AuthController(Resource):
             db.session.commit()
             return {
                        "result": {
-                           "token": token
-                       }
+                           "token": token}
                    }, 201
         except Exception as e:
-            return {
-                       "error": {
-                           "message": str(e)
-                       }
+            return {"error": {
+                "message": str(e)
+            }
                    }, 422

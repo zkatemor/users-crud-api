@@ -12,4 +12,3 @@ class Token(db.Model):
         self.user = user
         self.password = password
         self.token = token
-

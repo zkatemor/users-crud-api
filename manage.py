@@ -10,7 +10,6 @@ from app.controllers.auth_controller import AuthController
 from app.controllers.users_controller import UsersController, UsersIndexController
 from app.controllers.post_controller import PostssController, PostsIndexController
 
-
 load_dotenv()
 
 app = create_app(os.environ['APP_SETTINGS'])
