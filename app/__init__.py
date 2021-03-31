@@ -1,7 +1,10 @@
 from flask import Flask
 from flask_restful import Api
 
-api = Api()
+from config.routes import register_routes
+from models.post import Post
+from models.token import Token
+from models.user import User
 
 
 def create_app(config='config.ProductionConfig'):
@@ -12,6 +15,11 @@ def create_app(config='config.ProductionConfig'):
     from db.setup import db
     db.init_app(app)
 
+    _ = (User, Post, Token)
+
+    api = Api(app)
+    register_routes(api)
+
     api.app = app
     api.authorizations = {
         'apiKey': {
@@ -20,4 +28,5 @@ def create_app(config='config.ProductionConfig'):
             'name': 'X-API-KEY'
         }
     }
+
     return app
