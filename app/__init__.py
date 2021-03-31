@@ -4,7 +4,7 @@ from flask_restful import Api
 api = Api()
 
 
-def create_app(config):
+def create_app(config='config.ProductionConfig'):
     app = Flask(__name__)
     app.config.from_object(config)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

@@ -1,6 +1,5 @@
 import os
 
-from dotenv import load_dotenv
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
@@ -10,9 +9,8 @@ from app.controllers.auth_controller import AuthController
 from app.controllers.users_controller import UsersController, UsersIndexController
 from app.controllers.post_controller import PostssController, PostsIndexController
 
-load_dotenv()
 
-app = create_app(os.environ['APP_SETTINGS'])
+app = create_app(os.getenv('config', 'config.DevelopmentConfig'))
 migrate = Migrate(app, database)
 manager = Manager(app)
 
