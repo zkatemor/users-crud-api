@@ -71,52 +71,37 @@ class UsersIndexController(Resource):
 
     @auth.login_required
     def put(self, id):
-        try:
-            username, first_name, last_name, is_active = self.update_params()
+        username, first_name, last_name, is_active = self.update_params()
 
+        user = User.query.filter(User.id == id).first()
+        if user is not None:
+            if username:
+                User.query.filter_by(id=id).update(
+                    {'username': username})
+
+            if first_name:
+                User.query.filter_by(id=id).update(
+                    {'first_name': first_name})
+
+            if last_name:
+                User.query.filter_by(id=id).update(
+                    {'last_name': last_name})
+
+            if is_active:
+                User.query.filter_by(id=id).update(
+                    {'is_active': is_active})
+
+            db.session.commit()
             user = User.query.filter(User.id == id).first()
-            if user is not None:
-                try:
-                    if username:
-                        User.query.filter_by(id=id).update(
-                            {'username': username})
 
-                    if first_name:
-                        User.query.filter_by(id=id).update(
-                            {'first_name': first_name})
-
-                    if last_name:
-                        User.query.filter_by(id=id).update(
-                            {'last_name': last_name})
-
-                    if is_active:
-                        User.query.filter_by(id=id).update(
-                            {'is_active': is_active})
-
-                    db.session.commit()
-                    user = User.query.filter(User.id == id).first()
-
-                    db.session.commit()
-                    return body_schema(user), 201
-                except Exception as e:
-                    return {
-                               "error": {
-                                   "message": str(e)
-                               }
-                           }, 422
-            else:
-                return {
-                           "error": {
-                               "message": 'User not found'
-                           }
-                       }, 404
-
-        except Exception as e:
+            db.session.commit()
+            return body_schema(user), 201
+        else:
             return {
                        "error": {
-                           "message": str(e)
+                           "message": 'User not found'
                        }
-                   }, 422
+                   }, 404
 
     @auth.login_required
     def get(self, id):
@@ -132,20 +117,13 @@ class UsersIndexController(Resource):
 
     @auth.login_required
     def delete(self, id):
-        try:
-            user = User.query.filter(User.id == id).first()
-            if user is not None:
-                User.query.filter(User.id == id).delete()
-                db.session.commit()
-                return {"success": True}, 200
-            else:
-                return {
-                           "error": {"message": "User not found"
-                                     }
-                       }, 404
-        except Exception as e:
+        user = User.query.filter(User.id == id).first()
+        if user is not None:
+            User.query.filter(User.id == id).delete()
+            db.session.commit()
+            return {"success": True}, 200
+        else:
             return {
-                       "error": {
-                           "message": str(e)
-                       }
+                       "error": {"message": "User not found"
+                                 }
                    }, 404

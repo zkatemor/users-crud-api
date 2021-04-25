@@ -48,8 +48,8 @@ class PostssController(Resource):
         except Exception as e:
             return {
                        "error": {
-                               "message": str(e)
-                           }
+                           "message": str(e)
+                       }
                    }, 422
 
     @auth.login_required
@@ -70,45 +70,30 @@ class PostsIndexController(Resource):
 
     @auth.login_required
     def put(self, id):
-        try:
-            title, body, userId = self.update_params()
+        title, body, userId = self.update_params()
 
+        post = Post.query.filter(Post.id == id).first()
+        if post is not None:
+            if title:
+                Post.query.filter_by(id=id).update({'title': title})
+
+            if body:
+                Post.query.filter_by(id=id).update({'body': body})
+
+            if userId:
+                Post.query.filter_by(id=id).update({'userId': userId})
+
+            db.session.commit()
             post = Post.query.filter(Post.id == id).first()
-            if post is not None:
-                try:
-                    if title:
-                        Post.query.filter_by(id=id).update({'title': title})
 
-                    if body:
-                        Post.query.filter_by(id=id).update({'body': body})
-
-                    if userId:
-                        Post.query.filter_by(id=id).update({'userId': userId})
-
-                    db.session.commit()
-                    post = Post.query.filter(Post.id == id).first()
-
-                    db.session.commit()
-                    return body_schema(post), 201
-                except Exception as e:
-                    return {
-                               "error": {
-                                   "message": str(e)
-                               }
-                           }, 422
-            else:
-                return {
-                           "error": {
-                               "message": 'Post not found'
-                           }
-                       }, 404
-
-        except Exception as e:
+            db.session.commit()
+            return body_schema(post), 201
+        else:
             return {
                        "error": {
-                           "message": str(e)
+                           "message": 'Post not found'
                        }
-                   }, 422
+                   }, 404
 
     @auth.login_required
     def get(self, id):
@@ -124,22 +109,15 @@ class PostsIndexController(Resource):
 
     @auth.login_required
     def delete(self, id):
-        try:
-            post = Post.query.filter(Post.id == id).first()
-            if post is not None:
-                Post.query.filter(Post.id == id).delete()
-                db.session.commit()
-                return {"success": True}, 200
-            else:
-                return {
-                           "error": {
-                               "message": "Post not found"
-                           }
-                       }, 404
-        except Exception as e:
+        post = Post.query.filter(Post.id == id).first()
+        if post is not None:
+            Post.query.filter(Post.id == id).delete()
+            db.session.commit()
+            return {"success": True}, 200
+        else:
             return {
                        "error": {
-                           "message": str(e)
+                           "message": "Post not found"
                        }
                    }, 404
 

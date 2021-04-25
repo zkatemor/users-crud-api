@@ -18,18 +18,11 @@ class AuthController(Resource):
 
     @auth.login_required
     def get(self):
-        try:
-            return {
-                "result": {
-                    "message": "Hello, {}!".format(auth.current_user())
-                }
+        return {
+            "result": {
+                "message": "Hello, {}!".format(auth.current_user())
             }
-        except Exception as e:
-            return {
-                       "error": {
-                           "message": str(e)
-                       }
-                   }, 422
+        }
 
     @auth.login_required
     def post(self):

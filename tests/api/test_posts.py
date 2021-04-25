@@ -172,14 +172,14 @@ def test_user_posts_delete_success(client):
 
 
 def test_user_posts_delete_404(client):
-    response = client.get('api/v1/posts/user/11',
-                          headers={'Authorization': 'Bearer token'})
+    response = client.delete('api/v1/posts/user/11',
+                             headers={'Authorization': 'Bearer token'})
 
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_user_posts_delete_unauth(client):
-    response = client.get('api/v1/posts/user/1')
+    response = client.delete('api/v1/posts/user/1')
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.data == b'Unauthorized Access'
