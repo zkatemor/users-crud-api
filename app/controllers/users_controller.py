@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask_restful import Resource, reqparse
 
 from app.auth.handlers import auth
@@ -43,18 +45,18 @@ class UsersController(Resource):
                         is_active=is_active)
             db.session.add(user)
             db.session.commit()
-            return body_schema(user), 201
+            return body_schema(user), HTTPStatus.OK
         except Exception as e:
             return {"error": {
                 "message": str(e)
             }
-                   }, 422
+                   }, HTTPStatus.UNPROCESSABLE_ENTITY
 
     @auth.login_required
     def get(self):
         query = User.query.order_by(User.id).all()
         data = schema(query)
-        return data, 200
+        return data, HTTPStatus.OK
 
 
 class UsersIndexController(Resource):
@@ -95,25 +97,25 @@ class UsersIndexController(Resource):
             user = User.query.filter(User.id == id).first()
 
             db.session.commit()
-            return body_schema(user), 201
+            return body_schema(user), HTTPStatus.CREATED
         else:
             return {
                        "error": {
                            "message": 'User not found'
                        }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND
 
     @auth.login_required
     def get(self, id):
         try:
             user = User.query.filter_by(id=id).first()
-            return body_schema(user), 200
+            return body_schema(user), HTTPStatus.OK
         except Exception as e:
             return {
                        "error": {
                            "message": 'User not found'
                        }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND
 
     @auth.login_required
     def delete(self, id):
@@ -121,9 +123,9 @@ class UsersIndexController(Resource):
         if user is not None:
             User.query.filter(User.id == id).delete()
             db.session.commit()
-            return {"success": True}, 200
+            return {"success": True}, HTTPStatus.OK
         else:
             return {
                        "error": {"message": "User not found"
                                  }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND

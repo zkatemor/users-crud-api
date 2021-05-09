@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from flask_restful import Resource, reqparse
 
 from app.auth.handlers import auth
@@ -44,19 +46,19 @@ class PostssController(Resource):
             post = Post(title=title, body=body, userId=userId)
             db.session.add(post)
             db.session.commit()
-            return body_schema(post), 201
+            return body_schema(post), HTTPStatus.CREATED
         except Exception as e:
             return {
                        "error": {
                            "message": str(e)
                        }
-                   }, 422
+                   }, HTTPStatus.UNPROCESSABLE_ENTITY
 
     @auth.login_required
     def get(self):
         query = Post.query.order_by(Post.id).all()
         data = schema(query)
-        return data, 200
+        return data, HTTPStatus.OK
 
 
 class PostsIndexController(Resource):
@@ -87,25 +89,25 @@ class PostsIndexController(Resource):
             post = Post.query.filter(Post.id == id).first()
 
             db.session.commit()
-            return body_schema(post), 201
+            return body_schema(post), HTTPStatus.CREATED
         else:
             return {
                        "error": {
                            "message": 'Post not found'
                        }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND
 
     @auth.login_required
     def get(self, id):
         try:
             post = Post.query.filter_by(id=id).first()
-            return body_schema(post), 200
+            return body_schema(post), HTTPStatus.OK
         except Exception as e:
             return {
                        "error": {
                            "message": 'Post not found'
                        }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND
 
     @auth.login_required
     def delete(self, id):
@@ -113,13 +115,13 @@ class PostsIndexController(Resource):
         if post is not None:
             Post.query.filter(Post.id == id).delete()
             db.session.commit()
-            return {"success": True}, 200
+            return {"success": True}, HTTPStatus.OK
         else:
             return {
                        "error": {
                            "message": "Post not found"
                        }
-                   }, 404
+                   }, HTTPStatus.NOT_FOUND
 
 
 class UserPost(Resource):
@@ -129,9 +131,9 @@ class UserPost(Resource):
         if Post.query.filter(Post.userId == userId).count():
             posts = Post.query.filter(Post.userId == userId)
             js = schema(posts)
-            return {'message': 'Success', 'data': js}, 200
+            return {'message': 'Success', 'data': js}, HTTPStatus.OK
         else:
-            return {'message': 'Posts not found', 'data': {}}, 404
+            return {'message': 'Posts not found', 'data': {}}, HTTPStatus.NOT_FOUND
 
     @auth.login_required
     def delete(self, userId):
@@ -139,9 +141,9 @@ class UserPost(Resource):
         if Post.query.filter(Post.userId == userId).count():
             Post.query.filter(Post.userId == userId).delete()
             db.session.commit()
-            return '', 204
+            return '', HTTPStatus.NO_CONTENT
         else:
-            return {'message': 'User posts not found', 'data': {}}, 404
+            return {'message': 'User posts not found', 'data': {}}, HTTPStatus.NOT_FOUND
 
 
 class Author(Resource):
@@ -153,4 +155,4 @@ class Author(Resource):
 
         js = schema_users(user)
 
-        return {'message': 'Success', 'data': js}, 200
+        return {'message': 'Success', 'data': js}, HTTPStatus.OK

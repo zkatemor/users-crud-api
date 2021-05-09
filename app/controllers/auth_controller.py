@@ -1,4 +1,5 @@
 import hashlib
+from http import HTTPStatus
 from secrets import token_hex
 
 from flask_restful import Resource, reqparse
@@ -37,9 +38,9 @@ class AuthController(Resource):
             return {
                        "result": {
                            "token": token}
-                   }, 201
+                   }, HTTPStatus.CREATED
         except Exception as e:
             return {"error": {
                 "message": str(e)
             }
-                   }, 422
+                   }, HTTPStatus.UNPROCESSABLE_ENTITY
