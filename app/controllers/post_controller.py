@@ -3,31 +3,11 @@ from http import HTTPStatus
 from flask_restful import Resource, reqparse
 
 from app.auth.handlers import auth
+from app.entities.basic_error import BasicError
+from app.entities.basic_schema import BasicSchema, BasicResponseSchema
 from models.post import Post
 from db.setup import db
 from models.user import User
-
-
-def body_schema(post):
-    return {"result": {'id': post.id,
-                       'title': post.title,
-                       'body': post.body,
-                       'userId': post.userId}}
-
-
-def schema_users(users):
-    return {"result": [{'id': user.id,
-                        'username': user.username,
-                        'first_name': user.first_name,
-                        'last_name': user.last_name,
-                        'is_active': user.is_active} for user in users]}
-
-
-def schema(posts):
-    return {"result": [{'id': post.id,
-                        'title': post.title,
-                        'body': post.body,
-                        'userId': post.userId} for post in posts]}
 
 
 class PostssController(Resource):
@@ -41,24 +21,21 @@ class PostssController(Resource):
 
     @auth.login_required
     def post(self):
-        try:
-            title, body, userId = self.create_params()
-            post = Post(title=title, body=body, userId=userId)
-            db.session.add(post)
-            db.session.commit()
-            return body_schema(post), HTTPStatus.CREATED
-        except Exception as e:
-            return {
-                       "error": {
-                           "message": str(e)
-                       }
-                   }, HTTPStatus.UNPROCESSABLE_ENTITY
+        title, body, userId = self.create_params()
+        post = Post(title=title, body=body, userId=userId)
+        db.session.add(post)
+        db.session.commit()
+
+        post_json = Post.serialize(post)
+        response = BasicSchema(result=post_json, status_code=HTTPStatus.CREATED)
+        return response.make_response(BasicResponseSchema().dump(response))
 
     @auth.login_required
     def get(self):
         query = Post.query.order_by(Post.id).all()
-        data = schema(query)
-        return data, HTTPStatus.OK
+        posts_json = [Post.serialize(q) for q in query]
+        response = BasicSchema(result=posts_json)
+        return BasicResponseSchema().dump(response)
 
 
 class PostsIndexController(Resource):
@@ -89,25 +66,21 @@ class PostsIndexController(Resource):
             post = Post.query.filter(Post.id == id).first()
 
             db.session.commit()
-            return body_schema(post), HTTPStatus.CREATED
+            post_json = Post.serialize(post)
+            response = BasicSchema(result=post_json)
+            return BasicResponseSchema().dump(response)
         else:
-            return {
-                       "error": {
-                           "message": 'Post not found'
-                       }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Post not found', status=HTTPStatus.NOT_FOUND)
 
     @auth.login_required
     def get(self, id):
         try:
             post = Post.query.filter_by(id=id).first()
-            return body_schema(post), HTTPStatus.OK
+            post_json = Post.serialize(post)
+            response = BasicSchema(result=post_json)
+            return BasicResponseSchema().dump(response)
         except Exception as e:
-            return {
-                       "error": {
-                           "message": 'Post not found'
-                       }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Post not found', status=HTTPStatus.NOT_FOUND)
 
     @auth.login_required
     def delete(self, id):
@@ -115,13 +88,9 @@ class PostsIndexController(Resource):
         if post is not None:
             Post.query.filter(Post.id == id).delete()
             db.session.commit()
-            return {"success": True}, HTTPStatus.OK
+            return '', HTTPStatus.NO_CONTENT
         else:
-            return {
-                       "error": {
-                           "message": "Post not found"
-                       }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Post not found', status=HTTPStatus.NOT_FOUND)
 
 
 class UserPost(Resource):
@@ -130,10 +99,11 @@ class UserPost(Resource):
         """viewing posts of a specific user"""
         if Post.query.filter(Post.userId == userId).count():
             posts = Post.query.filter(Post.userId == userId)
-            js = schema(posts)
-            return {'message': 'Success', 'data': js}, HTTPStatus.OK
+            posts_json = [Post.serialize(q) for q in posts]
+            response = BasicSchema(result=posts_json)
+            return BasicResponseSchema().dump(response)
         else:
-            return {'message': 'Posts not found', 'data': {}}, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Posts not found', status=HTTPStatus.NOT_FOUND)
 
     @auth.login_required
     def delete(self, userId):
@@ -143,7 +113,7 @@ class UserPost(Resource):
             db.session.commit()
             return '', HTTPStatus.NO_CONTENT
         else:
-            return {'message': 'User posts not found', 'data': {}}, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Users not found', status=HTTPStatus.NOT_FOUND)
 
 
 class Author(Resource):
@@ -153,6 +123,6 @@ class Author(Resource):
         user = User.query.join(User.posts, aliased=True) \
             .filter_by(id=id)
 
-        js = schema_users(user)
-
-        return {'message': 'Success', 'data': js}, HTTPStatus.OK
+        user_json = User.serialize(user)
+        response = BasicSchema(result=user_json)
+        return BasicResponseSchema().dump(response)

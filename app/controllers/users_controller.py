@@ -3,24 +3,10 @@ from http import HTTPStatus
 from flask_restful import Resource, reqparse
 
 from app.auth.handlers import auth
+from app.entities.basic_error import BasicError
+from app.entities.basic_schema import BasicSchema, BasicResponseSchema
 from models.user import User
 from db.setup import db
-
-
-def body_schema(user):
-    return {"result": {'id': user.id,
-                       'username': user.username,
-                       'first_name': user.first_name,
-                       'last_name': user.last_name,
-                       'is_active': user.is_active}}
-
-
-def schema(users):
-    return {"result": [{'id': user.id,
-                        'username': user.username,
-                        'first_name': user.first_name,
-                        'last_name': user.last_name,
-                        'is_active': user.is_active} for user in users]}
 
 
 class UsersController(Resource):
@@ -37,26 +23,24 @@ class UsersController(Resource):
 
     @auth.login_required
     def post(self):
-        try:
-            username, first_name, last_name, is_active = self.create_params()
-            user = User(username=username,
-                        first_name=first_name,
-                        last_name=last_name,
-                        is_active=is_active)
-            db.session.add(user)
-            db.session.commit()
-            return body_schema(user), HTTPStatus.OK
-        except Exception as e:
-            return {"error": {
-                "message": str(e)
-            }
-                   }, HTTPStatus.UNPROCESSABLE_ENTITY
+        username, first_name, last_name, is_active = self.create_params()
+        user = User(username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_active=is_active)
+        db.session.add(user)
+        db.session.commit()
+
+        user_json = User.serialize(user)
+        response = BasicSchema(result=user_json, status_code=HTTPStatus.CREATED)
+        return response.make_response(BasicResponseSchema().dump(response))
 
     @auth.login_required
     def get(self):
         query = User.query.order_by(User.id).all()
-        data = schema(query)
-        return data, HTTPStatus.OK
+        user_json = [User.serialize(user) for user in query]
+        response = BasicSchema(result=user_json)
+        return BasicResponseSchema().dump(response)
 
 
 class UsersIndexController(Resource):
@@ -97,25 +81,21 @@ class UsersIndexController(Resource):
             user = User.query.filter(User.id == id).first()
 
             db.session.commit()
-            return body_schema(user), HTTPStatus.CREATED
+            user_json = User.serialize(user)
+            response = BasicSchema(result=user_json, status_code=HTTPStatus.CREATED)
+            return response.make_response(BasicResponseSchema().dump(response))
         else:
-            return {
-                       "error": {
-                           "message": 'User not found'
-                       }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='Users not found', status=HTTPStatus.NOT_FOUND)
 
     @auth.login_required
     def get(self, id):
         try:
             user = User.query.filter_by(id=id).first()
-            return body_schema(user), HTTPStatus.OK
+            user_json = User.serialize(user)
+            response = BasicSchema(result=user_json)
+            return BasicResponseSchema().dump(response)
         except Exception as e:
-            return {
-                       "error": {
-                           "message": 'User not found'
-                       }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='User not found', status=HTTPStatus.NOT_FOUND)
 
     @auth.login_required
     def delete(self, id):
@@ -123,9 +103,6 @@ class UsersIndexController(Resource):
         if user is not None:
             User.query.filter(User.id == id).delete()
             db.session.commit()
-            return {"success": True}, HTTPStatus.OK
+            return '', HTTPStatus.NO_CONTENT
         else:
-            return {
-                       "error": {"message": "User not found"
-                                 }
-                   }, HTTPStatus.NOT_FOUND
+            raise BasicError(message='User not found', status=HTTPStatus.NOT_FOUND)

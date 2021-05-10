@@ -5,6 +5,7 @@ from secrets import token_hex
 from flask_restful import Resource, reqparse
 
 from app.auth.handlers import auth
+from app.entities.basic_schema import BasicResponseSchema, BasicSchema
 from models.token import Token
 from db.setup import db
 
@@ -27,20 +28,14 @@ class AuthController(Resource):
 
     @auth.login_required
     def post(self):
-        try:
-            username, password = self.create_params()
-            password_sha = hashlib.sha256(password.encode()).hexdigest()
-            token = token_hex(16)
+        username, password = self.create_params()
+        password_sha = hashlib.sha256(password.encode()).hexdigest()
+        token = token_hex(16)
 
-            auth = Token(user=username, password=password_sha, token=token)
-            db.session.add(auth)
-            db.session.commit()
-            return {
-                       "result": {
-                           "token": token}
-                   }, HTTPStatus.CREATED
-        except Exception as e:
-            return {"error": {
-                "message": str(e)
-            }
-                   }, HTTPStatus.UNPROCESSABLE_ENTITY
+        auth = Token(user=username, password=password_sha, token=token)
+        db.session.add(auth)
+        db.session.commit()
+
+        token_json = Token.serialize(auth)
+        response = BasicSchema(result=token_json, status_code=HTTPStatus.CREATED)
+        return response.make_response(BasicResponseSchema().dump(response))

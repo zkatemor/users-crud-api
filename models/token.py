@@ -12,3 +12,11 @@ class Token(db.Model):
         self.user = user
         self.password = password
         self.token = token
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user': self.user,
+            'password': self.password,
+            'token': self.token
+        }

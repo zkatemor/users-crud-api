@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 
+from app import error_handlers
 from config.routes import register_routes
 from models.post import Post
 from models.token import Token
@@ -19,6 +20,8 @@ def create_app(config='config.ProductionConfig'):
 
     api = Api(app)
     register_routes(api)
+
+    app.register_blueprint(error_handlers.blueprint)
 
     api.app = app
     api.authorizations = {
